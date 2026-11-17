@@ -61,6 +61,8 @@ Accio：设置 → MCP → 添加本地服务，命令 `npx`，参数 `-y shein-
 | `shein_api_doc` | 实时读某个接口的官方文档：请求参数（类型、必填、含义）、返回字段 |
 | `shein_api_call` | 调用**任意**官方接口（读和写）。读接口直接调；**写接口不带 `confirm: true` 只返回将要发送的请求，不发送**；支持上传文件（`files`）和带变量的路径 |
 
+全部 238 个接口的读写分类、适用合作模式、对应工具和官方文档链接见 [API.md](API.md)。
+
 明细写到本机 JSON / PDF：`~/Documents/SHEIN数据/<店铺>/`、`~/Documents/SHEIN标签/<店铺>/`（`SHEIN_OUTPUT_DIR` 可改）。
 
 ## 实拍图
