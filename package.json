@@ -1,0 +1,34 @@
+{
+  "name": "shein-seller-mcp",
+  "version": "0.1.0",
+  "description": "SHEIN seller MCP server + CLI on the official SHEIN Open Platform API: compliance-label / real-photo requirements, label printing (PDF), real photo upload & binding, SKU sales, inventory, purchase orders and finance reports. Zero dependencies.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "shein",
+    "shein-seller",
+    "shein-open-platform",
+    "accio"
+  ],
+  "homepage": "https://github.com/mrsxs/shein-seller-mcp#readme",
+  "bugs": "https://github.com/mrsxs/shein-seller-mcp/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrsxs/shein-seller-mcp.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "shein-seller-mcp": "bin/shein-seller-mcp.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
