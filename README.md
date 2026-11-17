@@ -1,8 +1,8 @@
 # shein-seller-mcp
 
-SHEIN seller MCP server + CLI built on the **official SHEIN Open Platform API** (no browser scraping): compliance-label / real-photo requirements, label printing (PDF), real-photo upload & binding, SKU sales, inventory, purchase orders and finance reports. Zero dependencies, Node ≥ 22.
+SHEIN seller MCP server + CLI built on the **official SHEIN Open Platform API** (no browser scraping). Covers **every documented Open API (238, read and write)** through a bundled catalog + generic call (writes need explicit confirmation), plus dedicated tools for compliance-label / real-photo requirements, label printing, real-photo upload, SKU sales, inventory, purchase orders and finance reports. Zero dependencies, Node ≥ 22.
 
-基于 **SHEIN 开放平台官方接口** 的卖家 MCP 服务 + 命令行：合规实拍图要求、打印合规标签（PDF）、上传绑定真实实拍图、SKU 销量、库存、采购单、报账单。零依赖，Node ≥ 22。
+基于 **SHEIN 开放平台官方接口** 的卖家 MCP 服务 + 命令行：**全部 238 个文档接口（读和写）都能调**（内置接口目录 + 通用调用，写操作要确认），常用的有专门工具：合规实拍图要求、打印合规标签（PDF）、上传绑定真实实拍图、SKU 销量、库存、采购单、报账单。零依赖，Node ≥ 22。
 
 只主动调接口，不用 Webhook，不需要公网服务器。
 
@@ -52,12 +52,14 @@ Accio：设置 → MCP → 添加本地服务，命令 `npx`，参数 `-y shein-
 | `shein_label_materials` | 环保材料清单（打环保标用） |
 | `shein_label_print` | 打印合规标签，下载 PDF 到本机（不改店铺数据） |
 | `shein_photo_check` | 检查实拍图：格式、≤10MB、≤8000px、每个 SKC ≤15 张，不上传 |
-| `shein_photo_bind` | 上传实拍图并绑定 SKC（**唯一会改店铺数据的工具**，要 `confirm: true`） |
+| `shein_photo_bind` | 上传实拍图并绑定 SKC（会改店铺数据，要 `confirm: true`） |
 | `shein_sales` | 每个 SKU 的今日 / 昨日 / 近 7 天 / 近 30 天销量 |
 | `shein_stock` | 库存（PI SHEIN 仓实物 / VI 虚拟 / JI JIT）：总、可用、锁定、在途 |
 | `shein_purchase_orders` | 采购单（备货单 / 急采单），≤60 天 |
 | `shein_finance_reports` | 报账单：结算状态、按币种合计 |
-| `shein_api_call` | 其他**只读**接口（内置只读清单；会改数据的接口一律拒绝） |
+| `shein_api_search` | 在全部 238 个官方接口里按关键词 / 分类 / 读写找接口（路径、方法、适用合作模式、是否只读） |
+| `shein_api_doc` | 实时读某个接口的官方文档：请求参数（类型、必填、含义）、返回字段 |
+| `shein_api_call` | 调用**任意**官方接口（读和写）。读接口直接调；**写接口不带 `confirm: true` 只返回将要发送的请求，不发送**；支持上传文件（`files`）和带变量的路径 |
 
 明细写到本机 JSON / PDF：`~/Documents/SHEIN数据/<店铺>/`、`~/Documents/SHEIN标签/<店铺>/`（`SHEIN_OUTPUT_DIR` 可改）。
 
@@ -86,7 +88,8 @@ npx -y shein-seller-mcp --help
 ## 安全
 
 - 密钥只在 `~/.config/shein-open/`（权限太宽会拒绝读取），不进 MCP 配置、不打印；报错里会遮住密钥、openKeyId 和授权临时码。
-- 写操作只有实拍图绑定，要显式确认；上传 / 绑定不自动重试。只读接口断线自动重试 2 次。
+- **读写分开**：内置只读清单（查询 / 打印标签条码）之外的接口一律当作会改店铺数据——MCP 要 `confirm: true`、命令行要 `--apply` 才发送，不带时只预览；写操作断线不自动重试（不知道服务器有没有执行过），只读接口断线自动重试 2 次。
+- 让 AI 调写接口前，应先把「哪家店、改什么、改成什么」给人确认（工具说明里已要求）。
 - 命令行不认识的参数直接报错。
 
 ## 已知限制（实测）
@@ -99,10 +102,11 @@ npx -y shein-seller-mcp --help
 ## 开发
 
 ```bash
-npm test
+npm test                            # 不连网，用自造数据
+node scripts/build-catalog.mjs      # 开放平台加了新接口时刷新 lib/catalog.json（在线拉目录和每个接口的文档）
 ```
 
-测试不连网，用自造数据。
+新接口默认当作「写」（要确认）；确认是只查不改的，加到 `lib/endpoints.mjs` 的只读清单。
 
 ## License
 

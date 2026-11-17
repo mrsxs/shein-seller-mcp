@@ -160,3 +160,16 @@ test('应用 ID / 接口域名：环境变量优先，其次 app.json；没配�
   assert.throws(() => loadApiHost(dir, { SHEIN_API_HOST: 'https://evil.example' }), /接口域名不对/);
   assert.throws(() => loadAppId(dir, { SHEIN_APP_ID: 'a/b' }), /格式不对/);
 });
+
+test('接口文档参数树：multiple=1 写成数组类型；路径里的 . / .. 段直接拒绝', async () => {
+  const { paramTree } = await import('../lib/apidoc.mjs');
+  const raw = JSON.stringify({ children: [{ props: { name: 'skc_info_list', type: 'object', multiple: 1, required: true, description: '<p>skc 信息</p>' }, children: [{ props: { name: 'skc_name', type: 'string' } }] }] });
+  const t = paramTree(raw);
+  assert.equal(t[0].type, 'array<object>');
+  assert.equal(t[0].description, 'skc 信息');
+  assert.equal(t[0].children[0].type, 'string');
+  assert.deepEqual(paramTree('not json'), []);
+  const req = createClient({ id: 'K', secret: 'S', fetchImpl: async () => { throw new Error('不该发请求'); } });
+  await assert.rejects(req('/open-api/goods/delete/..'), /接口路径不对/);
+  await assert.rejects(req('/open-api/./x'), /接口路径不对/);
+});
