@@ -1,6 +1,6 @@
 {
   "name": "shein-seller-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SHEIN seller MCP server + CLI on the official SHEIN Open Platform API: compliance-label / real-photo requirements, label printing (PDF), real photo upload & binding, SKU sales, inventory, purchase orders and finance reports. Zero dependencies.",
   "keywords": [
     "mcp",

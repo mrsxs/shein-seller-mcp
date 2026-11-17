@@ -119,6 +119,9 @@ test('通用调用：写接口不带 confirm 只返回预览不发送；不在�
     assert.equal(p.method, 'POST');
     assert.deepEqual(p.body, { skuList: [{ skuCode: 'x', cost: 1 }] });
     assert.match(p.note, /confirm=true/);
+    assert.equal(p.language, null);
+    assert.equal(JSON.parse((await s.call('shein_api_call', { path: '/open-api/goods/update-cost', body: {}, language: 'en' })).content[0].text).language, 'en');
+    assert.match((await s.call('shein_api_call', { path: '/open-api/goods/update-cost', body: {}, language: 'zh cn' })).content[0].text, /language 不对/);
     // confirm=false 也只是预览
     assert.equal(JSON.parse((await s.call('shein_api_call', { path: '/open-api/goods/modify-skc-shelf', body: {}, confirm: false })).content[0].text).preview, true);
     // 带变量的路径：按模板匹配到删除接口，方法用目录里的 DELETE；变量里不能带 /

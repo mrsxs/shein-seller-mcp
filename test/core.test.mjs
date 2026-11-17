@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import { decryptSecretKey, redact, signature } from '../lib/sign.mjs';
 import { empowerUrl, exchangeToken, parseRedirect } from '../lib/auth.mjs';
 import { createClient, SheinApiError } from '../lib/client.mjs';
-import { loadApiHost, loadAppId, loadAppSecret, loadStores, resolveStore, saveStore } from '../lib/config.mjs';
+import { loadApiHost, loadAppId, loadAppSecret, loadLanguage, loadStores, resolveStore, saveStore } from '../lib/config.mjs';
 
 test('签名：与 Python 独立实现的结果一致；随机串必须 5 位', () => {
   // python: 'ab12c' + b64(hmac_sha256(b'test-secret'+b'ab12c', b'KEY123&1583398764000&/open-api/order/purchase-order-infos').hexdigest())
@@ -60,10 +60,15 @@ test('请求：签名头、GET 拼查询参数、code≠0 抛错并说明、错�
   assert.equal(h['x-lt-openKeyId'], 'OPENKEY1');
   assert.equal(h['x-lt-timestamp'], '1700000000000');
   assert.match(h['x-lt-signature'], /^[0-9a-f]{5}/);
+  // 默认带 language: zh-cn（商品发布规范等接口必填）；单次请求可改；格式不对直接拒绝
+  assert.equal(h.language, 'zh-cn');
+  await req('/open-api/x/y', { body: {}, language: 'en' });
+  assert.equal(calls.at(-1).init.headers.language, 'en');
+  await assert.rejects(req('/open-api/x/y', { language: 'zh cn' }), /language 不对/);
   assert.equal(calls[0].init.body, '{"a":1}');
   await req('/open-api/order/purchase-order-infos', { method: 'GET', query: { pageNumber: 1, skip: undefined, t: '2026-11-01 00:00:00' } });
-  assert.equal(calls[1].url, 'https://h/open-api/order/purchase-order-infos?pageNumber=1&t=2026-11-01+00%3A00%3A00');
-  assert.equal(calls[1].init.body, undefined);
+  assert.equal(calls[2].url, 'https://h/open-api/order/purchase-order-infos?pageNumber=1&t=2026-11-01+00%3A00%3A00');
+  assert.equal(calls[2].init.body, undefined);
   await assert.rejects(req('/x'), /接口路径不对/);
 
   const ip = createClient({ id: 'K', secret: 'SECRET-abcdef', fetchImpl: fakeFetch({ code: '403', msg: 'ip not in white list' }).f });
@@ -159,6 +164,11 @@ test('应用 ID / 接口域名：环境变量优先，其次 app.json；没配�
   assert.equal(loadAppId(dir, { SHEIN_APP_ID: 'ZZZZ0123456789' }), 'ZZZZ0123456789');
   assert.throws(() => loadApiHost(dir, { SHEIN_API_HOST: 'https://evil.example' }), /接口域名不对/);
   assert.throws(() => loadAppId(dir, { SHEIN_APP_ID: 'a/b' }), /格式不对/);
+  assert.equal(loadLanguage(dir, {}), 'zh-cn');
+  assert.equal(loadLanguage(dir, { SHEIN_LANGUAGE: 'en' }), 'en');
+  writeFileSync(join(dir, 'app.json'), JSON.stringify({ appId: 'ABCDEF0123456789', language: 'pt-BR' }));
+  assert.equal(loadLanguage(dir, {}), 'pt-BR');
+  assert.throws(() => loadLanguage(dir, { SHEIN_LANGUAGE: 'zh cn' }), /language 不对/);
 });
 
 test('接口文档参数树：multiple=1 写成数组类型；路径里的 . / .. 段直接拒绝', async () => {

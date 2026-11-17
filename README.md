@@ -30,6 +30,8 @@ SHEIN seller MCP server + CLI built on the **official SHEIN Open Platform API** 
    会在 Chrome 打开授权页，点「确认授权」后自动换取并保存店铺密钥（`stores.json`）。多家店：切换卖家后台店铺后再跑一次。
    授权以最新一次为准，**不要在多台电脑上重复授权同一家店**；其他电脑用同一份配置文件（私下传）。
 
+请求头 `language` 默认 `zh-cn`（商品发布规范、分类属性等接口必填；合规类文档里写的 `CN` 在商品类接口会报错，`zh-cn` 全部接口都认）。要别的语种：环境变量 `SHEIN_LANGUAGE`、`app.json` 的 `language`，或 `shein_api_call` 的 `language` 参数。
+
 ## 接入 MCP 客户端
 
 ```json
